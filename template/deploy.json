@@ -4,7 +4,7 @@
   },
   "variables": {
     "workbookId": "[guid(subscription().subscriptionId)]",
-    "workbookDisplayName": "[concat('Azure Update Center (',substring(variables('workbookId'),0,7),')')]",
+    "workbookDisplayName": "[concat('Azure Update Center (',substring(variables('workbookId'),0,8),')')]",
     "workbookType": "workbook",
     "workbookSourceId": "azure monitor",
     "workbookContent": {
