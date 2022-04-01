@@ -3,7 +3,7 @@
   "parameters": {
   },
   "variables": {
-    "workbookId": "[guid(subscription().subscriptionId)]",
+    "workbookId": "[guid(resourceGroup().id, deployment().name)]",
     "workbookDisplayName": "[concat('Azure Update Center (',substring(variables('workbookId'),0,8),')')]",
     "workbookType": "workbook",
     "workbookSourceId": "azure monitor",
