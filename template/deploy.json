@@ -3,10 +3,10 @@
   "parameters": {
   },
   "variables": {
-    "workbookDisplayName": "Azure Update Center",
+    "workbookId": "[guid(subscription().subscriptionId)]",
+    "workbookDisplayName": "[concat('Azure Update Center (',uniqueString(variables('workbookId')),')')]",
     "workbookType": "workbook",
     "workbookSourceId": "azure monitor",
-    "workbookId": "[guid(subscription().subscriptionId)]",
     "workbookContent": {
       "version": "Notebook/1.0",
       "items": [
