@@ -1,0 +1,723 @@
+{
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workbookDisplayName": {
+      "type": "string",
+      "defaultValue": "Azure Update Center",
+      "metadata": {
+        "description": "The friendly name for the workbook that is used in the Gallery or Saved List.  This name must be unique within a resource group."
+      }
+    },
+    "workbookType": {
+      "type": "string",
+      "defaultValue": "workbook",
+      "metadata": {
+        "description": "The gallery that the workbook will been shown under. Supported values include workbook, tsg, etc. Usually, this is 'workbook'"
+      }
+    },
+    "workbookSourceId": {
+      "type": "string",
+      "defaultValue": "azure monitor",
+      "metadata": {
+        "description": "The id of resource instance to which the workbook will be associated"
+      }
+    },
+    "workbookId": {
+      "type": "string",
+      "defaultValue": "[newGuid()]",
+      "metadata": {
+        "description": "The unique guid for this workbook instance"
+      }
+    }
+  },
+  "variables": {
+    "workbookContent": {
+      "version": "Notebook/1.0",
+      "items": [
+        {
+          "type": 1,
+          "content": {
+            "json": "Workbook currently in development. [Stay tuned for next updates!](https://github.com/jdmsft/AzureUpdateCenter)",
+            "style": "upsell"
+          },
+          "name": "banner"
+        },
+        {
+          "type": 1,
+          "content": {
+            "json": "# Azure Update Center\r\n*Version 1.0 BETA (04/2022) - Made by* [***JDMSFT***](https://github.com/jdmsft)\r\n\r\nThis workbook is intended to give an overview of your Azure IaaS services updates which leverage [**Automatic VM Guest Patching**](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching) and [**Azure Update Management**](https://docs.microsoft.com/azure/automation/update-management) features.\r\n\r\nUse the global filter below to properly define the global data context of this workbook."
+          },
+          "name": "title"
+        },
+        {
+          "type": 9,
+          "content": {
+            "version": "KqlParameterItem/1.0",
+            "crossComponentResources": [
+              "{Subscriptions}"
+            ],
+            "parameters": [
+              {
+                "id": "9bcef3a8-0a53-4f08-a99b-84d48abf9ffd",
+                "version": "KqlParameterItem/1.0",
+                "name": "Tenants",
+                "type": 7,
+                "isRequired": true,
+                "multiSelect": true,
+                "quote": "'",
+                "delimiter": ",",
+                "query": "resourcecontainers\r\n| distinct tenantId",
+                "crossComponentResources": [
+                  "value::all"
+                ],
+                "isHiddenWhenLocked": true,
+                "typeSettings": {
+                  "additionalResourceOptions": [
+                    "value::all"
+                  ]
+                },
+                "defaultValue": "value::all",
+                "queryType": 1,
+                "resourceType": "microsoft.resourcegraph/resources"
+              },
+              {
+                "id": "725a842b-1fa8-493f-9dd4-03f10dbb8fdf",
+                "version": "KqlParameterItem/1.0",
+                "name": "Subscriptions",
+                "type": 6,
+                "isRequired": true,
+                "multiSelect": true,
+                "quote": "'",
+                "delimiter": ",",
+                "value": [
+                  "value::all"
+                ],
+                "typeSettings": {
+                  "additionalResourceOptions": [
+                    "value::all"
+                  ],
+                  "includeAll": true,
+                  "selectAllValue": "",
+                  "showDefault": false
+                },
+                "defaultValue": "value::all"
+              },
+              {
+                "id": "79b9e243-24da-4d52-bf5c-5597f110803c",
+                "version": "KqlParameterItem/1.0",
+                "name": "UpdatesWorkspacesGlobal",
+                "label": "Updates Workspaces (Global)",
+                "type": 5,
+                "isRequired": true,
+                "multiSelect": true,
+                "quote": "'",
+                "delimiter": ",",
+                "query": "resources\r\n| where ['type'] == \"microsoft.operationsmanagement/solutions\" and name contains \"Updates(\"\r\n| extend workspaceId = tostring(properties.workspaceResourceId)\r\n| summarize by workspaceId, tenantId, subscriptionId",
+                "crossComponentResources": [
+                  "{Subscriptions}"
+                ],
+                "isHiddenWhenLocked": true,
+                "typeSettings": {
+                  "additionalResourceOptions": [
+                    "value::all"
+                  ],
+                  "showDefault": false
+                },
+                "defaultValue": "value::all",
+                "queryType": 1,
+                "resourceType": "microsoft.resourcegraph/resources"
+              }
+            ],
+            "style": "pills",
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          "name": "Parameters"
+        },
+        {
+          "type": 12,
+          "content": {
+            "version": "NotebookGroup/1.0",
+            "groupType": "editable",
+            "items": [
+              {
+                "type": 1,
+                "content": {
+                  "json": "## Azure Virtual Machines\r\n\r\nIf **Automatic VM Guest Patching** is enabled on a VM, then the available **Critical** and **Security** patches are downloaded and applied automatically on the VM. This process kicks off automatically every month when new patches are released. Patch assessment and installation are automatic, and the process includes rebooting the VM as required. Patches are installed within 30 days of the monthly patch releases. More details about **Automatic VM Guest Patching** [here](https://docs.microsoft.com/en-us/azure/virtual-machines/automatic-vm-guest-patching)."
+                },
+                "name": "text - 0"
+              },
+              {
+                "type": 3,
+                "content": {
+                  "version": "KqlItem/1.0",
+                  "query": "resources\r\n| where type == 'microsoft.compute/virtualmachines' and properties.storageProfile.osDisk.osType == 'Linux'\r\n| extend AutomaticUpdates = properties.osProfile.linuxConfiguration.enableAutomaticUpdates\r\n| extend PatchMode = properties.osProfile.linuxConfiguration.patchSettings.patchMode\r\n| extend AssessmentMode = properties.osProfile.linuxConfiguration.patchSettings.assessmentMode\r\n| extend VmOS = properties.storageProfile.osDisk.osType\r\n| extend VmState = strcat_array(split(properties.extended.instanceView.powerState.code,\"/\",1),\"\")\r\n| extend VM = id\r\n| union (\r\nresources\r\n    | where type == 'microsoft.compute/virtualmachines' and properties.storageProfile.osDisk.osType == 'Windows'\r\n    | extend AutomaticUpdates = properties.osProfile.windowsConfiguration.enableAutomaticUpdates\r\n    | extend PatchMode = properties.osProfile.windowsConfiguration.patchSettings.patchMode\r\n    | extend AssessmentMode = properties.osProfile.windowsConfiguration.patchSettings.assessmentMode\r\n    | extend HotPatching = properties.osProfile.windowsConfiguration.patchSettings.enableHotpatching\r\n    | extend VmOS = properties.storageProfile.osDisk.osType\r\n    | extend VmState = strcat_array(split(properties.extended.instanceView.powerState.code,\"/\",1),\"\")\r\n    | extend VM = id\r\n)\r\n| project VM, tostring(VmOS), VmState, tostring(AutomaticUpdates), tostring(PatchMode), tostring(HotPatching), Subscription=strcat(\"/subscriptions/\",subscriptionId)\r\n| summarize count() by VmOS",
+                  "size": 3,
+                  "title": "Operating System",
+                  "queryType": 1,
+                  "resourceType": "microsoft.resourcegraph/resources",
+                  "crossComponentResources": [
+                    "{Subscriptions}"
+                  ],
+                  "visualization": "piechart",
+                  "chartSettings": {
+                    "seriesLabelSettings": [
+                      {
+                        "seriesName": "true",
+                        "label": "Enabled",
+                        "color": "green"
+                      },
+                      {
+                        "seriesName": "",
+                        "label": "Not defined",
+                        "color": "orange"
+                      },
+                      {
+                        "seriesName": "false",
+                        "label": "Disabled",
+                        "color": "redBright"
+                      },
+                      {
+                        "seriesName": "Windows",
+                        "color": "blue"
+                      },
+                      {
+                        "seriesName": "Linux",
+                        "color": "yellow"
+                      }
+                    ]
+                  }
+                },
+                "customWidth": "33",
+                "name": "Chart-OperatingSystem"
+              },
+              {
+                "type": 3,
+                "content": {
+                  "version": "KqlItem/1.0",
+                  "query": "resources\r\n| where type == 'microsoft.compute/virtualmachines' and properties.storageProfile.osDisk.osType == 'Linux'\r\n| extend AutomaticUpdates = properties.osProfile.linuxConfiguration.enableAutomaticUpdates\r\n| extend PatchMode = properties.osProfile.linuxConfiguration.patchSettings.patchMode\r\n| extend AssessmentMode = properties.osProfile.linuxConfiguration.patchSettings.assessmentMode\r\n| extend VmOS = properties.storageProfile.osDisk.osType\r\n| extend VmState = strcat_array(split(properties.extended.instanceView.powerState.code,\"/\",1),\"\")\r\n| extend VM = id\r\n| union (\r\nresources\r\n    | where type == 'microsoft.compute/virtualmachines' and properties.storageProfile.osDisk.osType == 'Windows'\r\n    | extend AutomaticUpdates = properties.osProfile.windowsConfiguration.enableAutomaticUpdates\r\n    | extend PatchMode = properties.osProfile.windowsConfiguration.patchSettings.patchMode\r\n    | extend AssessmentMode = properties.osProfile.windowsConfiguration.patchSettings.assessmentMode\r\n    | extend HotPatching = properties.osProfile.windowsConfiguration.patchSettings.enableHotpatching\r\n    | extend VmOS = properties.storageProfile.osDisk.osType\r\n    | extend VmState = strcat_array(split(properties.extended.instanceView.powerState.code,\"/\",1),\"\")\r\n    | extend VM = id\r\n)\r\n| project VM, tostring(VmOS), VmState, tostring(AutomaticUpdates), tostring(PatchMode), tostring(HotPatching), Subscription=strcat(\"/subscriptions/\",subscriptionId)\r\n| summarize count() by AutomaticUpdates",
+                  "size": 3,
+                  "title": "Automatic Updates",
+                  "queryType": 1,
+                  "resourceType": "microsoft.resourcegraph/resources",
+                  "crossComponentResources": [
+                    "{Subscriptions}"
+                  ],
+                  "visualization": "piechart",
+                  "chartSettings": {
+                    "seriesLabelSettings": [
+                      {
+                        "seriesName": "true",
+                        "label": "Enabled",
+                        "color": "green"
+                      },
+                      {
+                        "seriesName": "",
+                        "label": "Not defined",
+                        "color": "orange"
+                      },
+                      {
+                        "seriesName": "false",
+                        "label": "Disabled",
+                        "color": "redBright"
+                      }
+                    ]
+                  }
+                },
+                "customWidth": "33",
+                "name": "Chart-AutomaticUpdates"
+              },
+              {
+                "type": 3,
+                "content": {
+                  "version": "KqlItem/1.0",
+                  "query": "resources\r\n| where type == 'microsoft.compute/virtualmachines' and properties.storageProfile.osDisk.osType == 'Linux'\r\n| extend AutomaticUpdates = properties.osProfile.linuxConfiguration.enableAutomaticUpdates\r\n| extend PatchMode = properties.osProfile.linuxConfiguration.patchSettings.patchMode\r\n| extend AssessmentMode = properties.osProfile.linuxConfiguration.patchSettings.assessmentMode\r\n| extend VmOS = properties.storageProfile.osDisk.osType\r\n| extend VmState = strcat_array(split(properties.extended.instanceView.powerState.code,\"/\",1),\"\")\r\n| extend VM = id\r\n| union (\r\nresources\r\n    | where type == 'microsoft.compute/virtualmachines' and properties.storageProfile.osDisk.osType == 'Windows'\r\n    | extend AutomaticUpdates = properties.osProfile.windowsConfiguration.enableAutomaticUpdates\r\n    | extend PatchMode = properties.osProfile.windowsConfiguration.patchSettings.patchMode\r\n    | extend AssessmentMode = properties.osProfile.windowsConfiguration.patchSettings.assessmentMode\r\n    | extend HotPatching = properties.osProfile.windowsConfiguration.patchSettings.enableHotpatching\r\n    | extend VmOS = properties.storageProfile.osDisk.osType\r\n    | extend VmState = strcat_array(split(properties.extended.instanceView.powerState.code,\"/\",1),\"\")\r\n    | extend VM = id\r\n)\r\n| project VM, tostring(VmOS), VmState, tostring(AutomaticUpdates), tostring(PatchMode), tostring(HotPatching), Subscription=strcat(\"/subscriptions/\",subscriptionId)\r\n| summarize count() by PatchMode",
+                  "size": 3,
+                  "title": "Patch Mode",
+                  "queryType": 1,
+                  "resourceType": "microsoft.resourcegraph/resources",
+                  "crossComponentResources": [
+                    "{Subscriptions}"
+                  ],
+                  "visualization": "piechart",
+                  "chartSettings": {
+                    "seriesLabelSettings": [
+                      {
+                        "seriesName": "AutomaticByOS",
+                        "label": "Managed by Windows",
+                        "color": "blue"
+                      },
+                      {
+                        "seriesName": "ImageDefault",
+                        "label": "Managed by Linux",
+                        "color": "yellow"
+                      },
+                      {
+                        "seriesName": "",
+                        "label": "Not defined",
+                        "color": "redBright"
+                      },
+                      {
+                        "seriesName": "AutomaticByPlatform",
+                        "label": "Managed by Azure",
+                        "color": "blueDark"
+                      },
+                      {
+                        "seriesName": "Manual",
+                        "label": "Manual (Windows)",
+                        "color": "orange"
+                      }
+                    ]
+                  }
+                },
+                "customWidth": "33",
+                "name": "Chart-PatchMode"
+              },
+              {
+                "type": 3,
+                "content": {
+                  "version": "KqlItem/1.0",
+                  "query": "resources\r\n| where type == 'microsoft.compute/virtualmachines' and properties.storageProfile.osDisk.osType == 'Linux'\r\n| extend autoUpdates = properties.osProfile.linuxConfiguration.enableAutomaticUpdates\r\n| extend patchMode = properties.osProfile.linuxConfiguration.patchSettings.patchMode\r\n| extend assessmentMode = properties.osProfile.linuxConfiguration.patchSettings.assessmentMode\r\n| extend vmOS = properties.storageProfile.osDisk.osType\r\n| extend vmState = strcat_array(split(properties.extended.instanceView.powerState.code,\"/\",1),\"\")\r\n| extend vmId = tolower(id)\r\n| union (\r\nresources\r\n    | where type == 'microsoft.compute/virtualmachines' and properties.storageProfile.osDisk.osType == 'Windows'\r\n    | extend autoUpdates = properties.osProfile.windowsConfiguration.enableAutomaticUpdates\r\n    | extend patchMode = properties.osProfile.windowsConfiguration.patchSettings.patchMode\r\n    | extend assessmentMode = properties.osProfile.windowsConfiguration.patchSettings.assessmentMode\r\n    | extend hotPatching = properties.osProfile.windowsConfiguration.patchSettings.enableHotpatching\r\n    | extend vmOS = properties.storageProfile.osDisk.osType\r\n    | extend vmState = strcat_array(split(properties.extended.instanceView.powerState.code,\"/\",1),\"\")\r\n    | extend vmId = tolower(id)\r\n)\r\n| join kind=leftouter (\r\n    resources\r\n    | extend extensionType = properties.type\r\n    | where type == 'microsoft.compute/virtualmachines/extensions' and extensionType =~ 'MicrosoftMonitoringAgent' or extensionType =~ 'OMSAgentForLinux'\r\n    | extend vmId = tolower(substring(id, 0, indexof(id, '/extensions')))\r\n    | extend logAnalyticsAgent = \"Enabled\"\r\n    | extend logAnalyticsAgentWorkspace = properties.settings.workspaceId\r\n    | extend logAnalyticsAgentDetails = properties\r\n    | join kind=leftouter (\r\n        resources\r\n        | extend extensionType = properties.type\r\n        | where type == 'microsoft.compute/virtualmachines/extensions' and extensionType =~ 'AzureMonitorWindowsAgent' or extensionType =~ 'AzureMonitorLinuxAgent'\r\n        | extend vmId = tolower(substring(id, 0, indexof(id, '/extensions')))\r\n        | extend azureMonitorAgent = \"Enabled\"\r\n        | extend azureMonitorAgentDetails = properties)\r\n    on vmId)\r\non vmId\r\n| join kind=leftouter (\r\n    patchinstallationresources\r\n    | where type == 'microsoft.compute/virtualmachines/patchinstallationresults'\r\n    | extend vmId = tolower(substring(id, 0, indexof(id, '/patchInstallationResults')))\r\n    | extend lastUpdateDate = properties.startDateTime\r\n    | extend lastUpdateReportSource = \"ResourceGraph\"\r\n    | extend lastUpdateDetails = properties\r\n    | project vmId, tostring(lastUpdateDate), tostring(lastUpdateReportSource), lastUpdateDetails\r\n    | order by tostring(lastUpdateDate) desc\r\n    | summarize arg_max(lastUpdateDate,*) by vmId)\r\non vmId\r\n| extend vmName = tostring(strcat_array(split(vmId,\"/\",8),\"\"))\r\n| project vmId=tolower(vmId), vmName, tostring(vmOS), vmState, tostring(autoUpdates), tostring(patchMode), tostring(hotPatching), logAnalyticsAgent, azureMonitorAgent, lastUpdateDate, lastUpdateReportSource, lastUpdateDetails, logAnalyticsAgentDetails, azureMonitorAgentDetails\r\n| order by vmName asc",
+                  "size": 0,
+                  "title": "Resource Graph Dataset",
+                  "queryType": 1,
+                  "resourceType": "microsoft.resourcegraph/resources",
+                  "crossComponentResources": [
+                    "{Subscriptions}"
+                  ]
+                },
+                "conditionalVisibility": {
+                  "parameterName": "hideDatasets",
+                  "comparison": "isEqualTo",
+                  "value": "false"
+                },
+                "name": "query-vms-graph"
+              },
+              {
+                "type": 3,
+                "content": {
+                  "version": "KqlItem/1.0",
+                  "query": "Update\r\n| where ComputerEnvironment == \"Azure\" and ResourceType == \"virtualMachines\"\r\n| extend vmId = tolower(ResourceId)\r\n| distinct vmId\r\n| join kind=leftouter (\r\n    Update\r\n    | extend vmId = tolower(ResourceId)\r\n    | where ResourceType == \"virtualMachines\"\r\n    | summarize arg_max(PublishedDate,*) by vmId\r\n    | project vmId, lastUpdateDate=PublishedDate, computerId=SourceComputerId)\r\non vmId\r\n| join kind=leftouter (\r\n    Heartbeat\r\n    | where ResourceType == \"virtualMachines\"\r\n    | extend vmId = tolower(ResourceId)\r\n    | summarize arg_max(TimeGenerated,*) by vmId\r\n    | project vmId, lastAgentHeartbeat=TimeGenerated,lastAgentHeartbeatType=Category)\r\non vmId\r\n| extend lastUpdateReportSource = \"LogAnalytics\"\r\n| project vmId, lastUpdateDate, lastUpdateReportSource, lastAgentHeartbeat, lastAgentHeartbeatType, computerId\r\n| order by tostring(strcat_array(split(vmId,\"/\",8),\"\")) asc",
+                  "size": 0,
+                  "title": "Log Analytics Dataset",
+                  "timeContext": {
+                    "durationMs": 86400000
+                  },
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "crossComponentResources": [
+                    "{UpdatesWorkspacesGlobal}"
+                  ]
+                },
+                "conditionalVisibility": {
+                  "parameterName": "hideDatasets",
+                  "comparison": "isEqualTo",
+                  "value": "false"
+                },
+                "name": "query-vms-logs"
+              },
+              {
+                "type": 3,
+                "content": {
+                  "version": "KqlItem/1.0",
+                  "query": "{\"version\":\"Merge/1.0\",\"merges\":[{\"id\":\"c73b29d4-e0a5-4750-93c1-c2e835c440ec\",\"mergeType\":\"leftouter\",\"leftTable\":\"query-vms-graph\",\"rightTable\":\"query-vms-logs\",\"leftColumn\":\"vmId\",\"rightColumn\":\"vmId\"}],\"projectRename\":[{\"originalName\":\"[query-vms-graph].vmId\",\"mergedName\":\"vmId\",\"fromId\":\"c73b29d4-e0a5-4750-93c1-c2e835c440ec\"},{\"originalName\":\"[query-vms-graph].vmName\",\"mergedName\":\"vmName\",\"fromId\":\"c73b29d4-e0a5-4750-93c1-c2e835c440ec\"},{\"originalName\":\"[query-vms-graph].vmOS\",\"mergedName\":\"vmOS\",\"fromId\":\"c73b29d4-e0a5-4750-93c1-c2e835c440ec\"},{\"originalName\":\"[query-vms-graph].vmState\",\"mergedName\":\"vmState\",\"fromId\":\"c73b29d4-e0a5-4750-93c1-c2e835c440ec\"},{\"originalName\":\"[query-vms-graph].autoUpdates\",\"mergedName\":\"autoUpdates\",\"fromId\":\"c73b29d4-e0a5-4750-93c1-c2e835c440ec\"},{\"originalName\":\"[query-vms-graph].patchMode\",\"mergedName\":\"patchMode\",\"fromId\":\"c73b29d4-e0a5-4750-93c1-c2e835c440ec\"},{\"originalName\":\"[query-vms-graph].hotPatching\",\"mergedName\":\"hotPatching\",\"fromId\":\"c73b29d4-e0a5-4750-93c1-c2e835c440ec\"},{\"originalName\":\"[query-vms-graph].logAnalyticsAgentDetails\",\"mergedName\":\"legacyAgent\",\"fromId\":\"c73b29d4-e0a5-4750-93c1-c2e835c440ec\"},{\"originalName\":\"[query-vms-graph].azureMonitorAgentDetails\",\"mergedName\":\"modernAgent\",\"fromId\":\"c73b29d4-e0a5-4750-93c1-c2e835c440ec\"},{\"originalName\":\"[query-vms-graph].lastUpdateDate\",\"mergedName\":\"lastDataFromGraph\",\"fromId\":\"c73b29d4-e0a5-4750-93c1-c2e835c440ec\"},{\"originalName\":\"[query-vms-logs].lastUpdateDate\",\"mergedName\":\"lastDataDataFromLogs\",\"fromId\":\"c73b29d4-e0a5-4750-93c1-c2e835c440ec\"},{\"originalName\":\"[query-vms-logs].computerId\",\"mergedName\":\"computerId\",\"fromId\":\"c73b29d4-e0a5-4750-93c1-c2e835c440ec\"},{\"originalName\":\"[query -vms-logs].vmId\"},{\"originalName\":\"[query -vms-logs].lastUpdateReportSource\"},{\"originalName\":\"[query-vms-graph].lastUpdateReportSource\"},{\"originalName\":\"[query -vms-logs].lastAgentHeartbeatType\"},{\"originalName\":\"[query -vms-logs].lastAgentHeartbeat\"},{\"originalName\":\"[query-vms-logs].vmId\"},{\"originalName\":\"[query-vms-logs].lastUpdateReportSource\"},{\"originalName\":\"[query-vms-logs].lastAgentHeartbeat\"},{\"originalName\":\"[query-vms-logs].lastAgentHeartbeatType\"},{\"originalName\":\"[query-vms-graph].logAnalyticsAgent\"},{\"originalName\":\"[query-vms-graph].azureMonitorAgent\"},{\"originalName\":\"[query-vms-graph].lastUpdateDetails\"}]}",
+                  "size": 0,
+                  "title": "Configuration",
+                  "exportedParameters": [
+                    {
+                      "fieldName": "vmId",
+                      "parameterName": "selected_vmId",
+                      "parameterType": 1
+                    },
+                    {
+                      "fieldName": "computerId",
+                      "parameterName": "selected_computerId",
+                      "parameterType": 1
+                    }
+                  ],
+                  "queryType": 7,
+                  "gridSettings": {
+                    "formatters": [
+                      {
+                        "columnMatch": "vmId",
+                        "formatter": 0,
+                        "formatOptions": {
+                          "customColumnWidthSetting": "25ch"
+                        }
+                      },
+                      {
+                        "columnMatch": "vmName",
+                        "formatter": 0,
+                        "formatOptions": {
+                          "customColumnWidthSetting": "25ch"
+                        }
+                      },
+                      {
+                        "columnMatch": "lastDataFromGraph",
+                        "formatter": 6,
+                        "formatOptions": {
+                          "customColumnWidthSetting": "25ch"
+                        }
+                      },
+                      {
+                        "columnMatch": "lastDataDataFromLogs",
+                        "formatter": 6,
+                        "formatOptions": {
+                          "customColumnWidthSetting": "25ch"
+                        }
+                      }
+                    ],
+                    "sortBy": [
+                      {
+                        "itemKey": "vmName",
+                        "sortOrder": 1
+                      }
+                    ]
+                  },
+                  "sortBy": [
+                    {
+                      "itemKey": "vmName",
+                      "sortOrder": 1
+                    }
+                  ]
+                },
+                "showPin": false,
+                "name": "query-vms-merge"
+              },
+              {
+                "type": 3,
+                "content": {
+                  "version": "KqlItem/1.0",
+                  "query": "Update\r\n| where SourceComputerId == '{selected_computerId}'\r\n| summarize arg_max(TimeGenerated, *) by Computer, SourceComputerId, UpdateID\r\n| project updateId=UpdateID, updatePublishDate=PublishedDate, updateState=UpdateState, classification=Classification, updateProduct=Product, updateDetails=Title, kbId=KBID, updateLogDate=TimeGenerated\r\n| order by updatePublishDate desc ",
+                  "size": 0,
+                  "title": "Update Summary (for the selected VM)",
+                  "timeContext": {
+                    "durationMs": 86400000
+                  },
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "crossComponentResources": [
+                    "{UpdatesWorkspacesGlobal}"
+                  ]
+                },
+                "name": "query -vm-updates"
+              },
+              {
+                "type": 3,
+                "content": {
+                  "version": "KqlItem/1.0",
+                  "query": "patchinstallationresources\r\n| where type == 'microsoft.compute/virtualmachines/patchinstallationresults'\r\n| extend vmId = tolower(substring(id, 0, indexof(id, '/patchInstallationResults')))\r\n| where vmId == '{selected_vmId}'\r\n| extend dateTime = tostring(properties.startDateTime)\r\n| extend status = tostring(properties.status)\r\n| extend rebootStatus = tostring(properties.rebootStatus)\r\n| extend message = tostring(properties.errorDetails.message)\r\n| extend details = properties\r\n| project vmId, dateTime, status, rebootStatus, message, details\r\n| order by tostring(dateTime) desc",
+                  "size": 0,
+                  "title": "Platform Update Summary (for the selected VM)",
+                  "queryType": 1,
+                  "resourceType": "microsoft.resourcegraph/resources",
+                  "crossComponentResources": [
+                    "{Subscriptions}"
+                  ],
+                  "gridSettings": {
+                    "formatters": [
+                      {
+                        "columnMatch": "Date",
+                        "formatter": 6,
+                        "dateFormat": {
+                          "formatName": "shortDateTimePattern"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "name": "query-platformupdates"
+              }
+            ]
+          },
+          "name": "group-patchconfiguration"
+        },
+        {
+          "type": 12,
+          "content": {
+            "version": "NotebookGroup/1.0",
+            "groupType": "editable",
+            "items": [
+              {
+                "type": 1,
+                "content": {
+                  "json": "## Azure Update Management\r\n\r\n**Azure Update Management** use **Azure Automation** and **Log Analytics** to manage operating system updates for your Windows and Linux virtual machines in Azure, physical or VMs in on-premises environments, and in other cloud environments. More details [here](https://docs.microsoft.com/en-us/azure/automation/update-management/overview)."
+                },
+                "name": "text - 3"
+              },
+              {
+                "type": 11,
+                "content": {
+                  "version": "LinkItem/1.0",
+                  "style": "tabs",
+                  "links": [
+                    {
+                      "id": "d3bd6ffa-a9b9-43a7-980f-bc2fee84c556",
+                      "cellValue": "selectedTab",
+                      "linkTarget": "parameter",
+                      "linkLabel": "Updates Workspaces",
+                      "subTarget": "tab-workspaces",
+                      "style": "link"
+                    },
+                    {
+                      "id": "91348a0f-f867-40e4-b131-20a58e8f6d10",
+                      "cellValue": "selectedTab",
+                      "linkTarget": "parameter",
+                      "linkLabel": "Updates Workspaces Virtual Machines",
+                      "subTarget": "tab-vms",
+                      "style": "link"
+                    },
+                    {
+                      "id": "d2a64a16-e7d8-4d73-bc73-c792a8d742e0",
+                      "cellValue": "selectedTab",
+                      "linkTarget": "parameter",
+                      "linkLabel": "Automation Hybrid Runbook Workers",
+                      "subTarget": "tab-hrw",
+                      "style": "link"
+                    }
+                  ]
+                },
+                "name": "links - 0"
+              },
+              {
+                "type": 3,
+                "content": {
+                  "version": "KqlItem/1.0",
+                  "query": "resources\r\n| where ['type'] == \"microsoft.operationsmanagement/solutions\" and name contains \"Updates(\"\r\n| join kind=leftouter (resourcecontainers | where type==\"microsoft.resources/subscriptions\" | project subscriptionName=name, subscriptionId) on subscriptionId \r\n| extend workspace = tostring(properties.workspaceResourceId)\r\n| summarize by workspace, tenantId, subscriptionName, subscriptionId\r\n",
+                  "size": 0,
+                  "queryType": 1,
+                  "resourceType": "microsoft.resourcegraph/resources",
+                  "crossComponentResources": [
+                    "{Subscriptions}"
+                  ],
+                  "gridSettings": {
+                    "labelSettings": [
+                      {
+                        "columnId": "workspace",
+                        "label": "Workspace"
+                      },
+                      {
+                        "columnId": "tenantId",
+                        "label": "Tenant ID"
+                      },
+                      {
+                        "columnId": "subscriptionName",
+                        "label": "Subscription Name"
+                      },
+                      {
+                        "columnId": "subscriptionId",
+                        "label": "Subscription ID"
+                      }
+                    ]
+                  }
+                },
+                "conditionalVisibility": {
+                  "parameterName": "selectedTab",
+                  "comparison": "isEqualTo",
+                  "value": "tab-workspaces"
+                },
+                "name": "tab-workspaces"
+              },
+              {
+                "type": 9,
+                "content": {
+                  "version": "KqlParameterItem/1.0",
+                  "crossComponentResources": [
+                    "{Subscriptions}"
+                  ],
+                  "parameters": [
+                    {
+                      "id": "066bb362-23bd-44df-bb3b-b0c35f18e128",
+                      "version": "KqlParameterItem/1.0",
+                      "name": "UpdatesWorkspaces",
+                      "label": "Updates Workspaces",
+                      "type": 5,
+                      "isRequired": true,
+                      "multiSelect": true,
+                      "quote": "'",
+                      "delimiter": ",",
+                      "query": "resources\r\n| where ['type'] == \"microsoft.operationsmanagement/solutions\" and name contains \"Updates(\"\r\n| extend workspaceId = tostring(properties.workspaceResourceId)\r\n| summarize by workspaceId, tenantId, subscriptionId\r\n",
+                      "crossComponentResources": [
+                        "{Subscriptions}"
+                      ],
+                      "typeSettings": {
+                        "additionalResourceOptions": [
+                          "value::all"
+                        ],
+                        "showDefault": false
+                      },
+                      "timeContext": {
+                        "durationMs": 86400000
+                      },
+                      "queryType": 1,
+                      "resourceType": "microsoft.resourcegraph/resources",
+                      "value": [
+                        "value::all"
+                      ]
+                    }
+                  ],
+                  "style": "pills",
+                  "doNotRunWhenHidden": true,
+                  "queryType": 1,
+                  "resourceType": "microsoft.resourcegraph/resources"
+                },
+                "conditionalVisibility": {
+                  "parameterName": "selectedTab",
+                  "comparison": "isEqualTo",
+                  "value": "tab-vms"
+                },
+                "name": "parameters - 4"
+              },
+              {
+                "type": 3,
+                "content": {
+                  "version": "KqlItem/1.0",
+                  "query": "Update\r\n| where ComputerEnvironment == \"Azure\" and ResourceType == \"virtualMachines\"\r\n| extend vmId = tolower(ResourceId)\r\n| distinct vmId\r\n| join kind=leftouter (\r\n    Update\r\n    | where UpdateState == \"Installed\" and ComputerEnvironment == \"Azure\" and ResourceType == \"virtualMachines\"\r\n    | summarize arg_max(TimeGenerated,*) by Computer\r\n    | extend vmId = tolower(ResourceId)\r\n    | extend lastUpdateDate = TimeGenerated\r\n    | extend lastUpdateKB = KBID\r\n    | extend lastUpdateType = Classification\r\n    | extend lastUpdateSeverity = MSRCSeverity)\r\non vmId\r\n| project vmId, lastUpdateDate, lastUpdateKB, lastUpdateType, lastUpdateSeverity\r\n| order by tostring(strcat_array(split(vmId,\"/\",8),\"\")) asc",
+                  "size": 0,
+                  "timeContext": {
+                    "durationMs": 86400000
+                  },
+                  "exportFieldName": "VirtualMachine",
+                  "exportParameterName": "selectedUpdateManagementVM",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "crossComponentResources": [
+                    "{UpdatesWorkspaces}"
+                  ],
+                  "gridSettings": {
+                    "labelSettings": [
+                      {
+                        "columnId": "vmId",
+                        "label": "Virtual Machine"
+                      },
+                      {
+                        "columnId": "lastUpdateDate",
+                        "label": "Last Update Date"
+                      },
+                      {
+                        "columnId": "lastUpdateKB",
+                        "label": "Last Update KB"
+                      },
+                      {
+                        "columnId": "lastUpdateType",
+                        "label": "Last Update Type"
+                      },
+                      {
+                        "columnId": "lastUpdateSeverity",
+                        "label": "Last Update Severity"
+                      }
+                    ]
+                  }
+                },
+                "conditionalVisibility": {
+                  "parameterName": "selectedTab",
+                  "comparison": "isEqualTo",
+                  "value": "tab-vms"
+                },
+                "name": "tab-vms"
+              },
+              {
+                "type": 1,
+                "content": {
+                  "json": "When **Azure Automation Update Management** is enabled, any machine connected to your Updates workspace is by default automatically configured as a **System Hybrid Runbook Worker**. \r\n\r\n> Because the integration of *Azure Resource Manager* and *Custom Endpoint* workbook data sources is limited, you need to browse each **Automation Accounts** individually below to see associated **System Hybrid runbook Worker** underneath (if applied). When Azure Workbook service will permit it, I will implement an automated process to fetch all **System Hybrid Runbook Workers**. Stay tuned!"
+                },
+                "conditionalVisibility": {
+                  "parameterName": "selectedTab",
+                  "comparison": "isEqualTo",
+                  "value": "tab-hrw"
+                },
+                "name": "text-hrw"
+              },
+              {
+                "type": 3,
+                "content": {
+                  "version": "KqlItem/1.0",
+                  "query": "resources\r\n| where type == \"microsoft.automation/automationaccounts\"\r\n| project id, location, properties, identity, resourceGroup, subscriptionId, tenantId",
+                  "size": 0,
+                  "title": "Automation Accounts",
+                  "exportFieldName": "id",
+                  "exportParameterName": "selectedAutomationAccount",
+                  "queryType": 1,
+                  "resourceType": "microsoft.resourcegraph/resources",
+                  "crossComponentResources": [
+                    "{Subscriptions}"
+                  ]
+                },
+                "conditionalVisibility": {
+                  "parameterName": "selectedTab",
+                  "comparison": "isEqualTo",
+                  "value": "tab-hrw"
+                },
+                "name": "query-automationaccounts"
+              },
+              {
+                "type": 3,
+                "content": {
+                  "version": "KqlItem/1.0",
+                  "query": "{\"version\":\"ARMEndpoint/1.0\",\"data\":null,\"headers\":[],\"method\":\"GETARRAY\",\"path\":\"{selectedAutomationAccount}/hybridRunbookWorkerGroups?api-version=2015-10-31\",\"urlParams\":[],\"batchDisabled\":false,\"transformers\":null}",
+                  "size": 0,
+                  "title": "Hybrid Runbook Workers",
+                  "queryType": 12,
+                  "gridSettings": {
+                    "formatters": [
+                      {
+                        "columnMatch": "hybridRunbookWorkers",
+                        "formatter": 7,
+                        "formatOptions": {
+                          "linkTarget": "CellDetails",
+                          "linkIsContextBlade": true
+                        }
+                      }
+                    ]
+                  }
+                },
+                "conditionalVisibility": {
+                  "parameterName": "selectedTab",
+                  "comparison": "isEqualTo",
+                  "value": "tab-hrw"
+                },
+                "name": "query-hrw"
+              }
+            ]
+          },
+          "name": "group-updatemanagement"
+        },
+        {
+          "type": 1,
+          "content": {
+            "json": "---\r\nMade with 💙 by [**JDMSFT**](https://github.com/jdmsft)"
+          },
+          "name": "footer"
+        }
+      ],
+      "isLocked": false,
+      "fallbackResourceIds": [
+        "azure monitor"
+      ]
+    }
+  },
+  "resources": [
+    {
+      "name": "[parameters('workbookId')]",
+      "type": "microsoft.insights/workbooks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2021-03-08",
+      "dependsOn": [],
+      "kind": "shared",
+      "properties": {
+        "displayName": "[parameters('workbookDisplayName')]",
+        "serializedData": "[string(variables('workbookContent'))]",
+        "version": "1.0",
+        "sourceId": "[parameters('workbookSourceId')]",
+        "category": "[parameters('workbookType')]"
+      }
+    }
+  ],
+  "outputs": {
+    "workbookId": {
+      "type": "string",
+      "value": "[resourceId( 'microsoft.insights/workbooks', parameters('workbookId'))]"
+    }
+  },
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
+}
