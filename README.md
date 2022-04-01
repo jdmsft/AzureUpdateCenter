@@ -22,7 +22,7 @@ The workbook has two parts:
 
 To deploy this workbook in your Azure tenant, click on the button below:
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjdmsft%2FAzureUpdateCenter%2Fmain%2Ftemplate%2Fdeploy.json" target="_blank"><img src="https://raw.githubusercontent.com/jdmsft/AzureUpdateCenter/main/media/DeployToAzWorkbookByJDMSFT_v2.0.png" height="50"/></a>
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjdmsft%2FAzureUpdateCenter%2Fmain%2Ftemplate%2Fdeploy.json" target="_blank"><img src="https://raw.githubusercontent.com/jdmsft/AzureUpdateCenter/main/media/DeployToAzWorkbookByJDMSFT_v2.0.png" height="60"/></a>
 
 ## Know issues & limitations
 
