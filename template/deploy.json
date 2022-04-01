@@ -1,36 +1,12 @@
 {
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "workbookDisplayName": {
-      "type": "string",
-      "defaultValue": "Azure Update Center",
-      "metadata": {
-        "description": "The friendly name for the workbook that is used in the Gallery or Saved List.  This name must be unique within a resource group."
-      }
-    },
-    "workbookType": {
-      "type": "string",
-      "defaultValue": "workbook",
-      "metadata": {
-        "description": "The gallery that the workbook will been shown under. Supported values include workbook, tsg, etc. Usually, this is 'workbook'"
-      }
-    },
-    "workbookSourceId": {
-      "type": "string",
-      "defaultValue": "azure monitor",
-      "metadata": {
-        "description": "The id of resource instance to which the workbook will be associated"
-      }
-    },
-    "workbookId": {
-      "type": "string",
-      "defaultValue": "[newGuid()]",
-      "metadata": {
-        "description": "The unique guid for this workbook instance"
-      }
-    }
   },
   "variables": {
+    "workbookDisplayName": "Azure Update Center",
+    "workbookType": "workbook",
+    "workbookSourceId": "azure monitor",
+    "workbookId": "[newGuid()]",
     "workbookContent": {
       "version": "Notebook/1.0",
       "items": [
@@ -698,25 +674,25 @@
   },
   "resources": [
     {
-      "name": "[parameters('workbookId')]",
+      "name": "[variables('workbookId')]",
       "type": "microsoft.insights/workbooks",
       "location": "[resourceGroup().location]",
       "apiVersion": "2021-03-08",
       "dependsOn": [],
       "kind": "shared",
       "properties": {
-        "displayName": "[parameters('workbookDisplayName')]",
+        "displayName": "[variables('workbookDisplayName')]",
         "serializedData": "[string(variables('workbookContent'))]",
         "version": "1.0",
-        "sourceId": "[parameters('workbookSourceId')]",
-        "category": "[parameters('workbookType')]"
+        "sourceId": "[variables('workbookSourceId')]",
+        "category": "[variables('workbookType')]"
       }
     }
   ],
   "outputs": {
     "workbookId": {
       "type": "string",
-      "value": "[resourceId( 'microsoft.insights/workbooks', parameters('workbookId'))]"
+      "value": "[resourceId( 'microsoft.insights/workbooks', variables('workbookId'))]"
     }
   },
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
