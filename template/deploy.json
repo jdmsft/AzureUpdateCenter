@@ -6,7 +6,7 @@
     "workbookDisplayName": "Azure Update Center",
     "workbookType": "workbook",
     "workbookSourceId": "azure monitor",
-    "workbookId": "guid()",
+    "workbookId": "[guid(subscription().subscriptionId)]",
     "workbookContent": {
       "version": "Notebook/1.0",
       "items": [
