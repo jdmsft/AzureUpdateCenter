@@ -24,6 +24,6 @@ To deploy this workbook in your Azure tenant, click on the button below:
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjdmsft%2FAzureUpdateCenter%2Fmain%2Ftemplate%2Fdeploy.json" target="_blank"><img src="https://raw.githubusercontent.com/jdmsft/AzureUpdateCenter/main/media/DeployToAzWorkbookByJDMSFT_v2.0.png" height="60"/></a>
 
-## Know issues & limitations
+## Known issues & limitations
 
 * Because we can't loop in a *Custom Endpoint* query, I can't query dynamically worker nodes. As a workaround I offer the possibility to browse your automation accounts from the **Azure Update Management** part of the workbook to show associated Hybrid Runbook Workers (System node included).
