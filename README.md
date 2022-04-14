@@ -21,7 +21,7 @@ The workbook has two parts:
 
 To deploy this workbook in your Azure tenant, click on the button below:
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjdmsft%2FAzureUpdateCenter%2Fdev%2Ftemplate%2Fdeploy.json" target="_blank"><img src="https://raw.githubusercontent.com/jdmsft/AzureUpdateCenter/dev/media/DeployToAzWorkbookByJDMSFT_v2.0.png" height="60"/></a>
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjdmsft%2FAzureUpdateCenter%2Fmain%2Ftemplate%2Fdeploy.json" target="_blank"><img src="https://raw.githubusercontent.com/jdmsft/AzureUpdateCenter/main/media/DeployToAzWorkbookByJDMSFT_v2.0.png" height="60"/></a>
 
 > This deployment experience automatically handle uniqueness constraint of the Azure Workbook. You only need to provide a location where to deploy this workbook and that's it!
 
