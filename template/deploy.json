@@ -7,7 +7,7 @@
     "workbookUri": "https://github.com/jdmsft/AzureUpdateCenter",
     "workbookVersion": "1.1.0",
     "workbookId": "[guid(resourceGroup().id, deployment().name)]",
-    "workbookFullDisplayName": "[concat(variables('workbookDisplayName'),' (',substring(variables('workbookId'),0,8),')')]",
+    "workbookFullDisplayName": "[concat(variables('workbookDisplayName'),' v',variables('workbookVersion'),' - ',substring(variables('workbookId'),0,8))]",
     "workbookType": "workbook",
     "workbookSourceId": "azure monitor",
     "workbookContent": {
