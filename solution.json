@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/jdmsft/schema/main/solution/2022-04-07",
+    "solution": {
+        "name":"Azure Update Center",
+        "uri": "https://github.com/jdmsft/AzureUpdateCenter",
+        "version": "1.1.0",
+        "type": "azWorkbook"
+    },
+    "customMessage": {
+        "type": null,
+        "content": null,
+        "scope": null
+    }
+}
