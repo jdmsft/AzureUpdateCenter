@@ -3,20 +3,192 @@
   "parameters": {
   },
   "variables": {
+    "workbookDisplayName": "Azure Update Center",
+    "workbookUri": "https://github.com/jdmsft/AzureUpdateCenter",
+    "workbookVersion": "1.0.0",
     "workbookId": "[guid(resourceGroup().id, deployment().name)]",
-    "workbookDisplayName": "[concat('Azure Update Center (',substring(variables('workbookId'),0,8),')')]",
+    "workbookFullDisplayName": "[concat(variables('workbookDisplayName'),' (',substring(variables('workbookId'),0,8),')')]",
     "workbookType": "workbook",
     "workbookSourceId": "azure monitor",
     "workbookContent": {
       "version": "Notebook/1.0",
       "items": [
         {
-          "type": 1,
+          "type": 12,
           "content": {
-            "json": "Workbook currently in development. [Stay tuned for next updates!](https://github.com/jdmsft/AzureUpdateCenter)",
-            "style": "upsell"
+            "version": "NotebookGroup/1.0",
+            "groupType": "editable",
+            "items": [
+              {
+                "type": 1,
+                "content": {
+                  "json": "**INTERNAL PARAMETERS - DO NOT EDIT OR REMOVE THE SETTINGS BELOW!**",
+                  "style": "warning"
+                },
+                "conditionalVisibility": {
+                  "parameterName": "unhideInternalParams",
+                  "comparison": "isEqualTo",
+                  "value": "true"
+                },
+                "name": "group-internal-text-up"
+              },
+              {
+                "type": 9,
+                "content": {
+                  "version": "KqlParameterItem/1.0",
+                  "parameters": [
+                    {
+                      "id": "0f274158-3b41-4347-8206-fe03ccae3d7c",
+                      "version": "KqlParameterItem/1.0",
+                      "name": "wbSolution",
+                      "value": "[variables('workbookUri')]",
+                      "type": 1,
+                      "isRequired": true,
+                      "isHiddenWhenLocked": true,
+                      "timeContext": {
+                        "durationMs": 86400000
+                      }
+                    },
+                    {
+                      "id": "b14633bf-2541-4ab3-8aa7-17a71d267109",
+                      "version": "KqlParameterItem/1.0",
+                      "name": "wbId",
+                      "value": "[variables('workbookId')]",
+                      "type": 1,
+                      "isRequired": true,
+                      "isHiddenWhenLocked": true,
+                      "timeContext": {
+                        "durationMs": 86400000
+                      }
+                    },
+                    {
+                      "id": "2a773da0-59b1-472a-abed-375180360216",
+                      "version": "KqlParameterItem/1.0",
+                      "name": "wbVersion",
+                      "value": "[variables('workbookVersion')]",
+                      "type": 1,
+                      "isRequired": true,
+                      "isHiddenWhenLocked": true,
+                      "timeContext": {
+                        "durationMs": 86400000
+                      }
+                    },
+                    {
+                      "id": "5ba2bb47-9360-4b3d-a537-4039ac9f6683",
+                      "version": "KqlParameterItem/1.0",
+                      "name": "wbUpdate",
+                      "type": 1,
+                      "isRequired": true,
+                      "query": "{\"version\":\"CustomEndpoint/1.0\",\"data\":null,\"headers\":[],\"method\":\"GET\",\"url\":\"https://jdmsft.azurewebsites.net/api/update\",\"contentType\":\"text/plain\",\"urlParams\":[{\"key\":\"sol\",\"value\":\"{wbSolution}\"},{\"key\":\"id\",\"value\":\"{wbId}\"},{\"key\":\"ver\",\"value\":\"{wbVersion}\"}],\"transformers\":null}",
+                      "isHiddenWhenLocked": true,
+                      "timeContext": {
+                        "durationMs": 86400000
+                      },
+                      "queryType": 10
+                    },
+                    {
+                      "id": "5be38392-1b0e-4a28-9850-4227fc7fbf3e",
+                      "version": "KqlParameterItem/1.0",
+                      "name": "wbCustomBannerType",
+                      "type": 1,
+                      "isRequired": true,
+                      "query": "{\"version\":\"1.0.0\",\"content\":\"{wbUpdate}\",\"transformers\":[{\"type\":\"jsonpath\",\"settings\":{\"tablePath\":\"$.customMsgType\",\"columns\":[]}}]}",
+                      "isHiddenWhenLocked": true,
+                      "timeContext": {
+                        "durationMs": 86400000
+                      },
+                      "queryType": 8
+                    },
+                    {
+                      "id": "8b770ddf-a4d5-49e0-9e58-147398434534",
+                      "version": "KqlParameterItem/1.0",
+                      "name": "wbCustomBannerMsg",
+                      "type": 1,
+                      "isRequired": true,
+                      "query": "{\"version\":\"1.0.0\",\"content\":\"{wbUpdate}\",\"transformers\":[{\"type\":\"jsonpath\",\"settings\":{\"tablePath\":\"$.customMsg\",\"columns\":[]}}]}",
+                      "isHiddenWhenLocked": true,
+                      "timeContext": {
+                        "durationMs": 86400000
+                      },
+                      "queryType": 8
+                    },
+                    {
+                      "version": "KqlParameterItem/1.0",
+                      "name": "wbUpdateBannerType",
+                      "type": 1,
+                      "isRequired": true,
+                      "query": "{\"version\":\"1.0.0\",\"content\":\"{wbUpdate}\",\"transformers\":[{\"type\":\"jsonpath\",\"settings\":{\"tablePath\":\"$.updateMsgType\",\"columns\":[]}}]}",
+                      "isHiddenWhenLocked": true,
+                      "timeContext": {
+                        "durationMs": 86400000
+                      },
+                      "queryType": 8,
+                      "id": "8d8f7e75-9dc7-4fb3-87f3-738f9f2553a8"
+                    },
+                    {
+                      "version": "KqlParameterItem/1.0",
+                      "name": "wbUpdateBannerMsg",
+                      "type": 1,
+                      "isRequired": true,
+                      "query": "{\"version\":\"1.0.0\",\"content\":\"{wbUpdate}\",\"transformers\":[{\"type\":\"jsonpath\",\"settings\":{\"tablePath\":\"$.updateMsg\",\"columns\":[]}}]}",
+                      "isHiddenWhenLocked": true,
+                      "timeContext": {
+                        "durationMs": 86400000
+                      },
+                      "queryType": 8,
+                      "id": "2e703258-b211-46be-a0da-0d5276327ef9"
+                    }
+                  ],
+                  "style": "pills",
+                  "queryType": 10
+                },
+                "conditionalVisibility": {
+                  "parameterName": "unhideInternalParams",
+                  "comparison": "isEqualTo",
+                  "value": "true"
+                },
+                "name": "group-internal-params"
+              },
+              {
+                "type": 1,
+                "content": {
+                  "json": "{wbUpdateBannerMsg}",
+                  "style": "{wbUpdateBannerType}"
+                },
+                "conditionalVisibility": {
+                  "parameterName": "wbUpdateBannerMsg",
+                  "comparison": "isNotEqualTo"
+                },
+                "name": "group-internal-msg-version"
+              },
+              {
+                "type": 1,
+                "content": {
+                  "json": "{wbCustomBannerMsg}",
+                  "style": "{wbCustomBannerType}"
+                },
+                "conditionalVisibility": {
+                  "parameterName": "wbCustomBannerMsg",
+                  "comparison": "isNotEqualTo"
+                },
+                "name": "group-internal-msg-custom"
+              },
+              {
+                "type": 1,
+                "content": {
+                  "json": "**INTERNAL PARAMETERS - DO NOT EDIT OR REMOVE THE SETTINGS BELOW!**",
+                  "style": "warning"
+                },
+                "conditionalVisibility": {
+                  "parameterName": "unhideInternalParams",
+                  "comparison": "isEqualTo",
+                  "value": "true"
+                },
+                "name": "group-internal-text-down"
+              }
+            ]
           },
-          "name": "banner"
+          "name": "group-internal"
         },
         {
           "type": 1,
