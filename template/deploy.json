@@ -206,7 +206,7 @@
         {
           "type": 1,
           "content": {
-            "json": "# Azure Update Center\r\n*Version 1.0 BETA (04/2022) - Made by* [***JDMSFT***](https://github.com/jdmsft)\r\n\r\nThis workbook is intended to give an overview of your Azure IaaS services updates which leverage [**Automatic VM Guest Patching**](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching) and [**Azure Update Management**](https://docs.microsoft.com/azure/automation/update-management) features.\r\n\r\nUse the global filter below to properly define the global data context of this workbook."
+            "json": "# Azure Update Center\r\n*Made by* [***JDMSFT***](https://github.com/jdmsft)\r\n\r\nThis workbook is intended to give an overview of your Azure IaaS services updates which leverage [**Automatic VM Guest Patching**](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching) and [**Azure Update Management**](https://docs.microsoft.com/azure/automation/update-management) features.\r\n\r\nUse the global filter below to properly define the global data context of this workbook."
           },
           "name": "title"
         },
