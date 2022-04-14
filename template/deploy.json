@@ -3,7 +3,7 @@
   "parameters": {
   },
   "variables": {
-    "workbookDisplayName": "Azure Update Center",
+    "workbookDisplayName": "Azure Update Center DEV",
     "workbookUri": "https://github.com/jdmsft/AzureUpdateCenter",
     "workbookVersion": "1.1.0",
     "workbookId": "[guid(resourceGroup().id, deployment().name)]",
@@ -853,7 +853,7 @@
       "dependsOn": [],
       "kind": "shared",
       "properties": {
-        "displayName": "[variables('workbookDisplayName')]",
+        "displayName": "[variables('workbookFullDisplayName')]",
         "serializedData": "[string(variables('workbookContent'))]",
         "version": "1.0",
         "sourceId": "[variables('workbookSourceId')]",
