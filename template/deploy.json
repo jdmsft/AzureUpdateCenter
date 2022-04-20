@@ -5,7 +5,7 @@
   "variables": {
     "workbookDisplayName": "Azure Update Center",
     "workbookUri": "https://github.com/jdmsft/AzureUpdateCenter",
-    "workbookVersion": "1.2.2",
+    "workbookVersion": "1.2.3",
     "workbookId": "[guid(resourceGroup().id, deployment().name)]",
     "workbookFullDisplayName": "[concat(variables('workbookDisplayName'),' v',variables('workbookVersion'),' - ',substring(variables('workbookId'),0,8))]",
     "workbookType": "workbook",
@@ -130,7 +130,6 @@
                       "name": "wbUpdateBannerMsg",
                       "type": 1,
                       "isRequired": true,
-                      "isGlobal": true,
                       "query": "{\"version\":\"1.0.0\",\"content\":\"{wbUpdate}\",\"transformers\":[{\"type\":\"jsonpath\",\"settings\":{\"tablePath\":\"$.updateMsg\",\"columns\":[]}}]}",
                       "isHiddenWhenLocked": true,
                       "timeContext": {
@@ -208,10 +207,6 @@
           "type": 1,
           "content": {
             "json": "# Azure Update Center\r\n*Made by* [***JDMSFT***](https://github.com/jdmsft)\r\n\r\nThis workbook is intended to give an overview of your Azure IaaS services updates which leverage [**Automatic VM Guest Patching**](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching) and [**Azure Update Management**](https://docs.microsoft.com/azure/automation/update-management) features.\r\n\r\nUse the global filter below to properly define the global data context of this workbook."
-          },
-          "conditionalVisibility": {
-            "parameterName": "wbUpdateBannerMsg",
-            "comparison": "isNotEqualTo"
           },
           "name": "title"
         },
@@ -297,10 +292,6 @@
             "style": "pills",
             "queryType": 1,
             "resourceType": "microsoft.resourcegraph/resources"
-          },
-          "conditionalVisibility": {
-            "parameterName": "wbUpdateBannerMsg",
-            "comparison": "isNotEqualTo"
           },
           "name": "Parameters"
         },
@@ -600,10 +591,6 @@
               }
             ]
           },
-          "conditionalVisibility": {
-            "parameterName": "wbUpdateBannerMsg",
-            "comparison": "isNotEqualTo"
-          },
           "name": "group-patchconfiguration"
         },
         {
@@ -853,10 +840,6 @@
                 "name": "query-hrw"
               }
             ]
-          },
-          "conditionalVisibility": {
-            "parameterName": "wbUpdateBannerMsg",
-            "comparison": "isNotEqualTo"
           },
           "name": "group-updatemanagement"
         },
