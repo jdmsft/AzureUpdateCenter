@@ -3,7 +3,7 @@
     "solution": {
         "name":"Azure Update Center",
         "uri": "https://github.com/jdmsft/AzureUpdateCenter",
-        "version": "1.2.0",
+        "version": "1.2.1",
         "type": "azWorkbook"
     },
     "customMessage": {
