@@ -5,7 +5,7 @@
   "variables": {
     "workbookDisplayName": "Azure Update Center",
     "workbookUri": "https://github.com/jdmsft/AzureUpdateCenter",
-    "workbookVersion": "1.2.1",
+    "workbookVersion": "1.2.2",
     "workbookId": "[guid(resourceGroup().id, deployment().name)]",
     "workbookFullDisplayName": "[concat(variables('workbookDisplayName'),' v',variables('workbookVersion'),' - ',substring(variables('workbookId'),0,8))]",
     "workbookType": "workbook",
@@ -130,6 +130,7 @@
                       "name": "wbUpdateBannerMsg",
                       "type": 1,
                       "isRequired": true,
+                      "isGlobal": true,
                       "query": "{\"version\":\"1.0.0\",\"content\":\"{wbUpdate}\",\"transformers\":[{\"type\":\"jsonpath\",\"settings\":{\"tablePath\":\"$.updateMsg\",\"columns\":[]}}]}",
                       "isHiddenWhenLocked": true,
                       "timeContext": {
